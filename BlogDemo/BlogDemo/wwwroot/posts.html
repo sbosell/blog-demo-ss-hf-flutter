@@ -1,0 +1,15 @@
+﻿{{  {} |> sendToGateway('GhostPostsProxyRequest') |> to => results }}
+
+
+    <div class="row">
+        {{#each post in results.posts}}
+        <div class="card col-md-4 col-sm-6 col-lg-6">
+            <img class="card-img-top" src="{{post.featureImage}}" alt="Card image cap">
+            <div class="card-body">
+                <h5 class="card-title">{{post.title}}</h5>
+                <p class="card-text">{{post.excerpt}}</p>
+                <a href="#" class="btn btn-primary">Read</a>
+            </div>
+        </div>
+        {{/each}}
+    </div>

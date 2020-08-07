@@ -14,6 +14,7 @@ using ServiceStack.Web;
 using System;
 using ServiceStack.Text;
 using ServiceStack.Logging;
+using System.IO;
 
 namespace BlogDemo
 {
@@ -33,7 +34,7 @@ namespace BlogDemo
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseServiceStack(new AppHost
+            app.UseServiceStack(new AppHost(Configuration)
             {
                 AppSettings = new NetCoreAppSettings(Configuration)
             });
@@ -42,19 +43,39 @@ namespace BlogDemo
 
     public class AppHost : AppHostBase
     {
-        public AppHost() : base("BlogDemo", typeof(MyServices).Assembly) { }
+        private IConfiguration _coreConfig;
+        public AppHost(IConfiguration coreConfig) : base("BlogDemo", typeof(GhostProxyService).Assembly) { 
+            _coreConfig = coreConfig;
+            }
 
         // Configure your AppHost with the necessary configuration and dependencies your App needs
         public override void Configure(Container container)
         {
             Plugins.Add(new SharpPagesFeature()); // enable server-side rendering, see: https://sharpscript.net/docs/sharp-pages
 
+            // This is already done for you however in many cases you may want to add
+            // your own custom items that will be a part of this cascading app settings provider
+            MultiAppSettingsBuilder multiAppSettingsBuilder = new MultiAppSettingsBuilder();
+            multiAppSettingsBuilder
+                .AddNetCore(_coreConfig); // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1#default-configuration
+               
+            // You can add text files or your own dictionary of custom values if you want
+
+            AppSettings = multiAppSettingsBuilder.Build();
+
             SetConfig(new HostConfig
             {
+               UseCamelCase= true,
                 UseSameSiteCookies = true,
                 AddRedirectParamsToQueryString = true,
                 DebugMode = AppSettings.Get(nameof(HostConfig.DebugMode), HostingEnvironment.IsDevelopment()),
             });
+
+            var test = AppSettings.Get<string>("GhostApi:ContentKey");
+
+           
         }
+
+       
     }
 }
