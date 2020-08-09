@@ -23,14 +23,14 @@ namespace BlogDemo.ServiceModel
     }
 
     [Route("/api/posts")]
-    public class PostQueryRequest : QueryData<Post>, IReturn<QueryResponse<Post>> {
+    public class PostQueryRequest : QueryData<Post>, IGet,IReturn<QueryResponse<Post>> {
         public string Filter { get;set;}
        // public string Order { get;set;}
 
      }
 
     [Route("/api/posts/{id}")]
-    public class PostRequest: IReturn<Post>
+    public class PostRequest: IGet, IReturn<Post>
     {
         public string Id { get;set;}
     }
