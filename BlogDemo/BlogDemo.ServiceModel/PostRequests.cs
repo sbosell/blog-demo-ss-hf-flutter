@@ -21,5 +21,18 @@ namespace BlogDemo.ServiceModel
             Limit = 15;
         }
     }
+
+    [Route("/api/posts")]
+    public class PostQueryRequest : QueryData<Post>, IReturn<QueryResponse<Post>> {
+        public string Filter { get;set;}
+       // public string Order { get;set;}
+
+     }
+
+    [Route("/api/posts/{id}")]
+    public class PostRequest: IReturn<Post>
+    {
+        public string Id { get;set;}
+    }
    
 }

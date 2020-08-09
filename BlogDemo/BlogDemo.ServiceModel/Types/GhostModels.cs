@@ -252,6 +252,8 @@ namespace BlogDemo.ServiceModel.Types
 
         
         public object EmailSubject { get; set; }
+
+        public long? ViewsToday { get;set;}
     }
 
 

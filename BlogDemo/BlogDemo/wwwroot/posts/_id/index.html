@@ -1,0 +1,14 @@
+﻿{{  {id} |> sendToGateway('PostRequest', {catchError:'ex'}) |> to => post }}
+
+
+<div class="row">
+    <div class="card">
+        <h5 class="card-title">{{post.title}}</h5>
+        <img class="card-img-top" src="{{post.featureImage}}" alt="Card image cap">
+        <div class="card-body">
+
+            <p class="card-text">{{post.html |> raw}}</p>
+            <a href="#" class="btn btn-primary">Read ({{post.viewsToday}})</a>
+        </div>
+    </div>
+</div>

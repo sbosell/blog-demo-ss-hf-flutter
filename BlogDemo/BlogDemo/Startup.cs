@@ -15,6 +15,11 @@ using System;
 using ServiceStack.Text;
 using ServiceStack.Logging;
 using System.IO;
+using ServiceStack.OrmLite;
+using ServiceStack.Data;
+using BlogDemo.ServiceModel.Types;
+using ServiceStack.Admin;
+using BlogDemo.ServiceModel;
 
 namespace BlogDemo
 {
@@ -62,6 +67,7 @@ namespace BlogDemo
             // You can add text files or your own dictionary of custom values if you want
 
             AppSettings = multiAppSettingsBuilder.Build();
+            JsConfig.TreatEnumAsInteger = true;
 
             SetConfig(new HostConfig
             {
@@ -69,11 +75,66 @@ namespace BlogDemo
                 UseSameSiteCookies = true,
                 AddRedirectParamsToQueryString = true,
                 DebugMode = AppSettings.Get(nameof(HostConfig.DebugMode), HostingEnvironment.IsDevelopment()),
+              
             });
 
-            var test = AppSettings.Get<string>("GhostApi:ContentKey");
+            // for our app we will use an inmemory database.  This can be replaced with no
+            // code changes for sql server, mysql or any of the ormlite providers
+            container.Register<IDbConnectionFactory>(c =>new OrmLiteConnectionFactory(":memory:", SqliteDialect.Provider)); 
 
-           
+            Plugins.Add(new AutoQueryDataFeature(){
+                MaxLimit = int.MaxValue
+            });
+
+            Plugins.Add(new AdminFeature());
+
+            using (var db = container.Resolve<IDbConnectionFactory>().Open())
+            { 
+                    db.CreateTableIfNotExists<PostLog>();   
+            }
+
+         
+
+            GatewayRequestFilters.Add((req, dto) =>
+            {
+                if (dto is PostRequest || dto is PostQueryRequest)
+                {
+                    using (var db = Resolve<IDbConnectionFactory>().Open())
+                    {
+                        using (var trans = db.OpenTransaction())
+                        {
+                            db.Insert<PostLog>(new PostLog()
+                            {
+                                EntryDate = DateTime.UtcNow,
+                                Identifier = (dto is PostRequest) ? ((PostRequest)dto).Id : string.Empty,
+                                RequestType = dto.ToString(),
+                                FilterType = FilterType.GatewayFilter
+                            });
+                            trans.Commit();
+                        }
+                    }
+                }
+            });
+
+            GlobalRequestFilters.Add((req, res, dto) =>
+            {
+                if (dto is PostRequest || dto is PostQueryRequest)
+                {
+                    using (var db = Resolve<IDbConnectionFactory>().Open())
+                    {
+                        using (var trans = db.OpenTransaction()) { 
+                            db.Insert<PostLog>(new PostLog() { 
+                                EntryDate = DateTime.UtcNow, 
+                                Identifier = (dto is PostRequest) ? ((PostRequest)dto).Id : string.Empty,
+                                RequestType = dto.GetType().ToString(),
+                                FilterType = FilterType.RequestFilter
+                            });
+                            trans.Commit();
+                        }
+                    }
+                }
+            });
+
         }
 
        

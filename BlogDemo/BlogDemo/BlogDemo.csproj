@@ -5,7 +5,17 @@
     <UserSecretsId>4506806e-0396-4803-b160-2aa33f7b785f</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ServiceStack" Version="5.*" />
+    <None Remove="Properties\posts.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Properties\posts.html">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ServiceStack" Version="5.9.3" />
+    <PackageReference Include="ServiceStack.Admin" Version="5.9.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BlogDemo.ServiceInterface\BlogDemo.ServiceInterface.csproj" />
