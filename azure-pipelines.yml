@@ -22,7 +22,7 @@ steps:
       command: "restore"
       restoreSolution: "$(solution)"
       feedsToUse: "config"
-      nugetConfigPath: '$(solution)\NuGet.Config'
+      nugetConfigPath: "./BlogDemo/NuGet.Config"
 
   - task: VSBuild@1
     inputs:
