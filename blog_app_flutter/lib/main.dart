@@ -1,14 +1,20 @@
 import 'dart:async';
 
+import 'package:blog_app_flutter/api/blog_api.dart';
+import 'package:blog_app_flutter/screens/blog_listing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_html/style.dart';
+import 'package:get_it/get_it.dart';
 import 'package:servicestack/client.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'blog_client.dtos.dart';
+import 'api/blog_client.dtos.dart';
+
+final getIt = GetIt.instance;
 
 void main() {
+  getIt.registerSingleton<BlogApi>(BlogApi("http://10.0.2.2:5001/"));
   runApp(MyApp());
 }
 
@@ -34,124 +40,7 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: BlogListing(title: 'Ambient Data Listing  '),
     );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  Completer<QueryResponse<Post>> apiResponse = Completer<QueryResponse<Post>>();
-  JsonServiceClient client = JsonServiceClient("http://10.0.2.2:5001/");
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    client.get(PostQueryRequest()).then((val) {
-      apiResponse.complete(val);
-    }).catchError((err) {
-      debugPrint(err);
-    });
-    super.didChangeDependencies();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-          child: FutureBuilder<QueryResponse<Post>>(
-              future: apiResponse.future,
-              builder: (context, AsyncSnapshot<QueryResponse<Post>> snapshot) {
-                if (!snapshot.hasData) return CircularProgressIndicator();
-                return ListView.builder(
-                    itemCount: snapshot.data.results.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => PostDetails(
-                                    snapshot.data.results[index].id)),
-                          );
-                        },
-                        child: ListTile(
-                            title: Text(snapshot.data.results[index].title)),
-                      );
-                    });
-              })),
-    );
-  }
-}
-
-class PostDetails extends StatefulWidget {
-  String _postId;
-
-  PostDetails(this._postId);
-
-  @override
-  _PostDetailsState createState() => _PostDetailsState();
-}
-
-class _PostDetailsState extends State<PostDetails> {
-  JsonServiceClient client = JsonServiceClient("http://10.0.2.2:5001/");
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(),
-        body: Container(
-            child: FutureBuilder<Post>(
-                future: client.get(PostRequest(id: widget._postId)),
-                builder: (context, AsyncSnapshot<Post> snapshot) {
-                  if (!snapshot.hasData) {
-                    return CircularProgressIndicator();
-                  }
-                  var post = snapshot.data;
-                  return ListView(children: [
-                    Image.network(post.featureImage, fit: BoxFit.cover),
-                    Text(
-                      post.title,
-                      style: Theme.of(context).textTheme.headline4,
-                    ),
-                    Html(data: post.html, style: {
-                      "code": Style(
-                          backgroundColor: Colors.grey[200],
-                          fontFamily:
-                              GoogleFonts.getFont('Ubuntu Mono').fontFamily),
-                      "pre": Style(
-                          backgroundColor: Colors.grey[200],
-                          fontFamily:
-                              GoogleFonts.getFont('Ubuntu Mono').fontFamily),
-                      "figure": Style(
-                        padding: EdgeInsets.all(0),
-                        margin: EdgeInsets.all(0),
-                      ),
-                    })
-                  ]);
-                })));
   }
 }
