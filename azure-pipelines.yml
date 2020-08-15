@@ -7,7 +7,7 @@ trigger:
   - master
 
 pool:
-  vmImage: "windows-latest"
+  vmImage: "ubuntu-latest"
 
 variables:
   solution: "**/*.sln"
@@ -24,12 +24,34 @@ steps:
       feedsToUse: "config"
       nugetConfigPath: "./BlogDemo/NuGet.Config"
 
-  - task: VSBuild@1
+  - task: PowerShell@2
+    displayName: "DotNet Publish Applications and Zip"
     inputs:
-      solution: "$(solution)"
-      msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
-      platform: "$(buildPlatform)"
-      configuration: "$(buildConfiguration)"
+      targetType: "inline"
+      script: |
+
+        git show -s > .\1.B4\B4\App.FrontEnd\Settings\version.txt
+
+        "branch $(Build.SourceBranchName)" >>  .\1.B4\B4\App.FrontEnd\settings\version.txt
+
+
+        dotnet publish ".\BlogDemo\BlogDemo\BlogDemo.csproj" -c Release -o $(Build.ArtifactStagingDirectory)\$(Build.BuildId)\artifacts\app
+
+
+        7z a $(Build.ArtifactStagingDirectory)\$(Build.BuildId)\zip\app.zip $(Build.ArtifactStagingDirectory)\$(Build.BuildId)\artifacts\app\*
+
+  - task: PublishBuildArtifacts@1
+    displayName: "Upload Artifacts for use in release pipeline"
+    inputs:
+      pathtoPublish: "$(Build.ArtifactStagingDirectory)/$(Build.BuildId)/zip"
+      artifactName: "drop"
+
+  # - task: VSBuild@1
+  #   inputs:
+  #     solution: "$(solution)"
+  #     msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+  #     platform: "$(buildPlatform)"
+  #     configuration: "$(buildConfiguration)"
 
   - task: PublishBuildArtifacts@1
     inputs:
