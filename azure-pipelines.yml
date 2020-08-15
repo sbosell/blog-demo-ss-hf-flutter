@@ -36,10 +36,10 @@ steps:
         "branch $(Build.SourceBranchName)" >>  ./BlogDemo/BlogDemo/version.txt
 
 
-        dotnet publish ".\BlogDemo\BlogDemo\BlogDemo.csproj" -c Release -o $(Build.ArtifactStagingDirectory)\$(Build.BuildId)\artifacts\app
+        dotnet publish "./BlogDemo/BlogDemo/BlogDemo.csproj" -c Release -o $(Build.ArtifactStagingDirectory)/$(Build.BuildId)/artifacts/app
 
 
-        7z a $(Build.ArtifactStagingDirectory)\$(Build.BuildId)\zip\app.zip $(Build.ArtifactStagingDirectory)\$(Build.BuildId)\artifacts\app\*
+        7z a $(Build.ArtifactStagingDirectory)/$(Build.BuildId)/zip/app.zip $(Build.ArtifactStagingDirectory)/$(Build.BuildId)/artifacts/app/*
 
   - task: PublishBuildArtifacts@1
     displayName: "Upload Artifacts for use in release pipeline"
